@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .button {
+            font-size: 16px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+
+        #listening-text {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        #label-container {
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="title">Teachable Machine Audio Model</div>
+        <button class="button" type="button" onclick="init()">Start</button>
+        <div id="listening-text"></div>
+        <div id="label-container"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
+
+    <script type="text/javascript">
+        // more documentation available at
+        // https://github.com/tensorflow/tfjs-models/tree/master/speech-commands
+
+        // the link to your model provided by Teachable Machine export panel
+        const URL = "https://teachablemachine.withgoogle.com/models/BUhPw8e_r/";
+        // const URL = "http://127.0.0.1:5500/" //http://127.0.0.1:5500/
+        // const URL = "file://"
+        // const URL = "file:///"
+
+        async function createModel() {
+            const checkpointURL = URL + "model.json"; // model topology
+            const metadataURL = URL + "metadata.json"; // model metadata
+
+            const recognizer = speechCommands.create(
+                "BROWSER_FFT", // fourier transform type, not useful to change
+                undefined, // speech commands vocabulary feature, not useful for your models
+                checkpointURL,
+                metadataURL);
+
+            // check that model and metadata are loaded via HTTPS requests.
+            await recognizer.ensureModelLoaded();
+
+            return recognizer;
+        }
+
+        async function init() {
+            const recognizer = await createModel();
+            const classLabels = recognizer.wordLabels(); // get class labels
+            const labelContainer = document.getElementById("label-container");
+            const averageScores = new Array(classLabels.length).fill(0);
+            let count = 0;
+
+            for (let i = 0; i < classLabels.length; i++) {
+                labelContainer.appendChild(document.createElement("div"));
+            }
+
+            const listeningTextContainer = document.getElementById("listening-text");
+            listeningTextContainer.innerHTML = "Listening";
+
+            recognizer.listen(result => {
+                const scores = result.scores; // probability of prediction for each class
+
+                // Add the current scores to the average scores
+                for (let i = 0; i < classLabels.length; i++) {
+                    averageScores[i] += scores[i];
+                }
+                // console.log(count);
+                console.log(averageScores)
+
+                count++;
+                try {
+                    // Code to run
+                    //  updater(ans,score);
+                    window.flutter_inappwebview.callHandler('updater', averageScores);
+                    //  [break;]
+                }
+
+                catch (e) {
+                    // Code to run if an exception occurs
+                    //  [break;]
+                }
+            }, {
+                includeSpectrogram: true, // in case listen should return result.spectrogram
+                probabilityThreshold: 0.75,
+                invokeCallbackOnNoiseAndUnknown: true,
+                overlapFactor: 0.50, // probably want between 0.5 and 0.75. More info in README
+                sampleRate: 44100,
+            });
+
+            // Stop the recognition and display average scores after the specified duration
+            setTimeout(() => {
+                recognizer.stopListening();
+                displayAverageScores();
+                const listeningTextContainer = document.getElementById("listening-text");
+                listeningTextContainer.innerHTML = "";
+            }, 12000);
+
+            function displayAverageScores() {
+                // Calculate the average scores for each class
+                const averageResults = [];
+                for (let i = 0; i < classLabels.length; i++) {
+                    const averageScore = (averageScores[i] / count) * 100;
+                    averageResults.push({ label: classLabels[i], score: averageScore.toFixed(2) });
+                }
+
+                // Post the averageResults to Flutter
+                // window.parent.postMessage(JSON.stringify(averageResults), '*');
+                // console.log(averageResults)
+
+                // Render the average scores
+                for (let i = 0; i < classLabels.length; i++) {
+                    const classPrediction = averageResults[i].label + ": " + averageResults[i].score;
+                    labelContainer.childNodes[i].innerHTML = classPrediction;
+                }
+
+                // console.log(averageResults)
+                try {
+                    window.flutter_inappwebview.callHandler('updater', averageResults);
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+
+    </script>
+</body>
+
+</html>
