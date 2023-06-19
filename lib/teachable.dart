@@ -32,26 +32,17 @@ class _TeachableState extends State<Teachable> {
             mediaPlaybackRequiresUserGesture: false,
           ),
         ),
-        // onWebViewCreated: (InAppWebViewController controller) async {
-        //   var _webViewController = controller;
-        //   _webViewController.addJavaScriptHandler(
-        //       handlerName: "updater",
-        //       callback: (args) {
-        //         List predictions = args[0];
-        //         Map<String, double> mp = new Map();
-        //         predictions.forEach((element) {
-        //           mp[element["label"]] = element["score"];
-        //         });
-        //         widget.results!(JsonEncoder().convert(mp));
-        //       });
-        // },
         onWebViewCreated: (InAppWebViewController controller) async {
           var _webViewController = controller;
           _webViewController.addJavaScriptHandler(
               handlerName: "updater",
               callback: (args) {
-                List<dynamic> predictions = args[0];
-                widget.results!(JsonEncoder().convert(predictions));
+                List predictions = args[0];
+                Map<String, double> mp = new Map();
+                predictions.forEach((element) {
+                  mp[element["label"]] = element["score"];
+                });
+                widget.results!(JsonEncoder().convert(mp));
               });
         },
         androidOnPermissionRequest: (InAppWebViewController controller,

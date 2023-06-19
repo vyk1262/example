@@ -87,26 +87,25 @@
 
             recognizer.listen(result => {
                 const scores = result.scores; // probability of prediction for each class
+                let finalResult = [];
 
                 // Add the current scores to the average scores
                 for (let i = 0; i < classLabels.length; i++) {
                     averageScores[i] += scores[i];
                 }
+
+                for (let i = 0; i < classLabels.length; i++) {
+                    finalResult.push({label: classLabels[i], score: averageScores[i]})
+                }
                 // console.log(count);
-                console.log(averageScores)
+                // console.log(finalResult)
+                try {
+                    window.flutter_inappwebview.callHandler('updater', finalResult);
+                } catch (e) {
+                    console.error(e);
+                }
 
                 count++;
-                try {
-                    // Code to run
-                    //  updater(ans,score);
-                    window.flutter_inappwebview.callHandler('updater', averageScores);
-                    //  [break;]
-                }
-
-                catch (e) {
-                    // Code to run if an exception occurs
-                    //  [break;]
-                }
             }, {
                 includeSpectrogram: true, // in case listen should return result.spectrogram
                 probabilityThreshold: 0.75,
@@ -142,11 +141,17 @@
                 }
 
                 // console.log(averageResults)
-                try {
-                    window.flutter_inappwebview.callHandler('updater', averageResults);
-                } catch (e) {
-                    console.error(e);
-                }
+                // try {
+                //     window.flutter_inappwebview.callHandler('updater', averageResultsJson);
+                // } catch (e) {
+                //     console.error(e);
+                // }
+                // try {
+                //     const data = JSON.stringify(averageResults);
+                //     window.flutter_inappwebview.postMessage(data);
+                // } catch (e) {
+                //     console.error(e);
+                // }
             }
         }
 

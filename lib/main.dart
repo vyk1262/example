@@ -36,6 +36,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String score = '';
+  String score2 = '';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,27 +45,15 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             Container(
                 child: Column(children: <Widget>[
-              // Expanded(
-              //   child: Container(
-              //     child: Teachable(
-              //       path: "assets/index.html",
-              //       results: (res) {
-              //         var resp = jsonDecode(res);
-              //         setState(() {
-              //           score = (resp['Background Noise'] * 100.0).toString();
-              //         });
-              //       },
-              //     ),
-              //   ),
-              // ),
               Expanded(
                 child: Container(
                   child: Teachable(
-                    path: "assets/original.html",
+                    path: "assets/index.html",
                     results: (res) {
                       var resp = jsonDecode(res);
                       setState(() {
-                        score = (resp[0] * 100.0).toString();
+                        score = (resp['Background Noise'] * 100.0).toString();
+                        score2 = (resp['CLUTCH BELL'] * 100.0).toString();
                       });
                     },
                   ),
@@ -93,6 +82,23 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                           Text(
                             score,
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Text(
+                            "CLUTCH BELL",
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            score2,
                             style: TextStyle(
                               color: Colors.white,
                             ),
